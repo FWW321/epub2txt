@@ -182,9 +182,17 @@ fn extract_text(html: &str) -> Result<String> {
 
 fn extract_title(html: &str) -> Result<String> {
     let document = Html::parse_document(html);
-    let selector = Selector::parse("h1").map_err(|e| anyhow::anyhow!("Selector 解析失败: {}", e))?;
 
-    Ok(document.select(&selector)
+    let title_selector = Selector::parse("title").map_err(|e| anyhow::anyhow!("Selector 解析失败: {}", e))?;
+    if let Some(title_element) = document.select(&title_selector).next() {
+        let title = title_element.text().collect::<String>().trim().to_string();
+        if !title.is_empty() {
+            return Ok(title);
+        }
+    }
+
+    let h1_selector = Selector::parse("h1").map_err(|e| anyhow::anyhow!("Selector 解析失败: {}", e))?;
+    Ok(document.select(&h1_selector)
         .next()
         .map(|e| e.text().collect::<String>().trim().to_string())
         .unwrap_or_else(|| "".to_string()))
