@@ -1,12 +1,12 @@
+use anyhow::{anyhow, Result};
+use kuchiki::traits::*;
+use kuchiki::NodeRef;
+use regex::Regex;
 use std::fs::{self, File};
 use std::io::{self, BufReader, Read, Write};
 use std::path::Path;
-use zip::ZipArchive;
-use scraper::{Html, Selector};
-use regex::Regex;
-use htmlescape::decode_html;
-use anyhow::Result;
 use xml::reader::{EventReader, XmlEvent};
+use zip::ZipArchive;
 
 fn main() -> Result<()> {
     let epub_path = prompt_input("请输入 EPUB 文件路径:")?;
@@ -162,40 +162,53 @@ fn prompt_number(prompt: &str, default: usize) -> Result<usize> {
 }
 
 fn extract_text(html: &str) -> Result<String> {
-    let document = Html::parse_document(html);
-    let selector = Selector::parse("body").map_err(|e| anyhow::anyhow!("Selector 解析失败: {}", e))?;
+    let document = kuchiki::parse_html().one(html);
+    let body = document.select("body").unwrap().next().ok_or(anyhow!("未找到 body 元素"))?;
+    let mut text = String::new();
+    extract_text_from_node(&body.as_node(), &mut text);
+    let unescaped = html_escape::decode_html_entities(&text);
+    Ok(unescaped.parse()?)
+}
 
-    let text = document.select(&selector)
-        .flat_map(|element| element.text())
-        .collect::<String>();
-
-    let decoded = decode_html(&text).unwrap_or(text);
-
-    // 清理零宽度空格等
-    // let re = Regex::new(r"[\u200B\ufeff]").map_err(|e| anyhow::anyhow!("Regex 编译失败: {}", e))?;
-    // let cleaned = re.replace_all(&decoded, "");
-
-    let re = Regex::new(r"\n\s*\n").map_err(|e| anyhow::anyhow!("Regex 编译失败: {}", e))?;
-    // Ok(re.replace_all(&cleaned, "\n\n").to_string())
-    Ok(re.replace_all(&decoded, "\n\n").to_string())
+fn extract_text_from_node(node: &NodeRef, text: &mut String) {
+    for child in node.inclusive_descendants() {
+        if let Some(element) = child.as_element() {
+            if element.name.local.to_string() == "br" {
+                text.push('\n');
+            }
+        } else if let Some(text_node) = child.as_text() {
+            let borrowed_text = text_node.borrow();
+            let content = borrowed_text.trim();
+            if !content.is_empty() {
+                text.push_str(content);
+                text.push('\n');
+            }
+        }
+    }
 }
 
 fn extract_title(html: &str) -> Result<String> {
-    let document = Html::parse_document(html);
+    let document = kuchiki::parse_html().one(html);
 
-    let title_selector = Selector::parse("title").map_err(|e| anyhow::anyhow!("Selector 解析失败: {}", e))?;
-    if let Some(title_element) = document.select(&title_selector).next() {
-        let title = title_element.text().collect::<String>().trim().to_string();
-        if !title.is_empty() {
-            return Ok(title);
+    if let Some(title) = extract_text_from_selector(&document, "title") {
+        if !title.trim().is_empty() {
+            return Ok(title.trim().to_string());
         }
     }
 
-    let h1_selector = Selector::parse("h1").map_err(|e| anyhow::anyhow!("Selector 解析失败: {}", e))?;
-    Ok(document.select(&h1_selector)
-        .next()
-        .map(|e| e.text().collect::<String>().trim().to_string())
-        .unwrap_or_else(|| "".to_string()))
+    if let Some(h1) = extract_text_from_selector(&document, "h1") {
+        return Ok(h1.trim().to_string());
+    }
+
+    Ok("".to_string())
+}
+
+fn extract_text_from_selector(document: &NodeRef, selector: &str) -> Option<String> {
+    document.select(selector).ok().and_then(|mut nodes| {
+        nodes.next().map(|node| {
+            node.text_contents().trim().to_string()
+        })
+    })
 }
 
 fn remove_original_title(text: &str, title: &str) -> Result<String> {

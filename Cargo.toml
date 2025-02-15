@@ -5,8 +5,8 @@ edition = "2021"
 
 [dependencies]
 zip = "2.2.2"
-scraper = "0.22.0"
 regex = "1.11.1"
-htmlescape = "0.3.1"
 anyhow = "1.0.95"
 xml-rs = "0.8.25"
+kuchiki = "0.8.1"
+html-escape = "0.2.13"
