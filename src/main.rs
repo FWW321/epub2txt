@@ -173,18 +173,33 @@ fn extract_text(html: &str) -> Result<String> {
 fn extract_text_from_node(node: &NodeRef, text: &mut String) {
     for child in node.inclusive_descendants() {
         if let Some(element) = child.as_element() {
-            if element.name.local.to_string() == "br" {
+            if element.name.local.to_string() == "p" {
                 text.push('\n');
             }
         } else if let Some(text_node) = child.as_text() {
             let borrowed_text = text_node.borrow();
-            let content = borrowed_text.trim();
+            let content = if is_parent_p(&child) {
+                borrowed_text.to_string()
+            } else {
+                borrowed_text.trim().to_string()
+            };
+
             if !content.is_empty() {
-                text.push_str(content);
-                text.push('\n');
+                text.push_str(&content);
             }
         }
     }
+
+    text.push_str("\n\n");
+}
+
+fn is_parent_p(node: &NodeRef) -> bool {
+    if let Some(parent) = node.parent() {
+        if let Some(element) = parent.as_element() {
+            return element.name.local.to_string() == "p";
+        }
+    }
+    false
 }
 
 fn extract_title(html: &str) -> Result<String> {
@@ -215,4 +230,21 @@ fn remove_original_title(text: &str, title: &str) -> Result<String> {
     let pattern = format!(r"^\s*{}\s*", regex::escape(title));
     let re = Regex::new(&pattern).map_err(|e| anyhow::anyhow!("Regex 编译失败: {}", e))?;
     Ok(re.replace(text, "").trim_start().to_string())
+}
+
+fn _extract_text_from_node(node: &NodeRef, text: &mut String) {
+    for child in node.inclusive_descendants() {
+        if let Some(element) = child.as_element() {
+            if element.name.local.to_string() == "br" {
+                text.push('\n');
+            }
+        } else if let Some(text_node) = child.as_text() {
+            let borrowed_text = text_node.borrow();
+            let content = borrowed_text.trim();
+            if !content.is_empty() {
+                text.push_str(content);
+                text.push('\n');
+            }
+        }
+    }
 }
