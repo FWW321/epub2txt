@@ -237,6 +237,8 @@ fn write_total_output_file(
     writeln!(total_output_file, "{}\n\n{}", numbered_title, text)?;
     if !separator.is_empty() && index < total_chapters - 1 {
         writeln!(total_output_file, "\n{}\n", separator)?;
+    } else {
+        writeln!(total_output_file, "\n")?;
     }
     Ok(())
 }
@@ -303,7 +305,7 @@ fn extract_text_from_node(node: &NodeRef, text: &mut String) {
         }
     }
 
-    text.push_str("\n\n");
+    text.trim().to_string();
 }
 
 fn is_parent_text_tag(node: &NodeRef, text_tags: &[&str]) -> bool {
