@@ -1,4 +1,5 @@
 /target
 /.idea
 /output
+/input
 Cargo.lock
