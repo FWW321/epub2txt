@@ -12,3 +12,9 @@ kuchiki = "0.8"
 html-escape = "0.2.13"
 serde = { version = "1.0", features = ["derive"] }
 toml_edit = "0.23"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+codegen-units = 1

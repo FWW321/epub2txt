@@ -21,13 +21,13 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: syosetu
-            asset_name: syosetu-linux-x86_64
+            artifact_name: epub2txt
+            asset_name: epub2txt-linux-x86_64
             target: x86_64-unknown-linux-gnu
             suffix: ""
           - os: windows-latest
-            artifact_name: syosetu.exe
-            asset_name: syosetu-windows-x86_64.exe
+            artifact_name: epub2txt.exe
+            asset_name: epub2txt-windows-x86_64.exe
             target: x86_64-pc-windows-msvc
             suffix: ".exe"
 
@@ -84,10 +84,10 @@ jobs:
         mkdir -p release-assets
         
         # 复制并重命名所有平台的二进制文件
-        cp syosetu-linux-x86_64/syosetu release-assets/syosetu-linux-x86_64
-        chmod +x release-assets/syosetu-linux-x86_64
+        cp epub2txt-linux-x86_64/epub2txt release-assets/epub2txt-linux-x86_64
+        chmod +x release-assets/epub2txt-linux-x86_64
         
-        cp syosetu-windows-x86_64.exe/syosetu.exe release-assets/syosetu-windows-x86_64.exe
+        cp epub2txt-windows-x86_64.exe/epub2txt.exe release-assets/epub2txt-windows-x86_64.exe
         
         ls -la release-assets/
 
@@ -115,13 +115,13 @@ jobs:
 
 
           #### Linux
-          - [Linux x86_64](https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/syosetu-linux-x86_64)
+          - [Linux x86_64](https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/epub2txt-linux-x86_64)
 
           #### Windows
-          - [Windows x86_64](https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/syosetu-windows-x86_64.exe)
+          - [Windows x86_64](https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.VERSION }}/epub2txt-windows-x86_64.exe)
           
           ### 功能特性
-          - 上传小说到syosetu平台
+          - epub2txt
           
         files: release-assets/*
         generate_release_notes: true
