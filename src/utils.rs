@@ -23,5 +23,7 @@ pub fn normalize_zip_path(opf_path: &str, rel: String) -> String {
         }
     }
 
+    println!("Normalized path: {}", result);
+
     result
 }

@@ -76,14 +76,7 @@ impl Epub {
 
     pub fn total_path(&self) -> Result<PathBuf> {
         let output_dir = self.output_dir()?;
-        let total_path = output_dir.join(format!(
-            "{}.txt",
-            &self
-                .metadata
-                .title
-                .as_deref()
-                .unwrap_or(self.filename.as_str())
-        ));
+        let total_path = output_dir.join("total.txt");
         if !total_path.exists() {
             File::create(&total_path)?;
         }
@@ -106,7 +99,12 @@ impl Epub {
             None
         };
         let total_path = if get_config().options.combine {
-            Some(self.total_path()?)
+            let total_path = self.total_path()?;
+            if let Some(title) = &self.metadata.title {
+                let mut file = File::options().append(true).open(&total_path)?;
+                writeln!(file, "{}\n", title)?;
+            }
+            Some(total_path)
         } else {
             None
         };
