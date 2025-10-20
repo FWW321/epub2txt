@@ -4,17 +4,20 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-zip = "6.0"
-regex = "1.11.1"
-anyhow = "1.0.95"
-xml-rs = "1.0"
-kuchiki = "0.8"
-html-escape = "0.2.13"
-serde = { version = "1.0", features = ["derive"] }
+
+zip = "6.0.0"
+rayon = "1.7"
+ahash = "0.8"
+anyhow = "1.0.71"
 toml_edit = "0.23"
+lazy_static = "1.4"
+phf = { version = "0.13", features = ["macros"] }
+config = { version = "0.15", features = ["toml"] }
+serde = { version = "1.0", features = ["derive"] }
+quick-xml = { version = "0.38", features = ["serialize"] }
 
 [profile.release]
 opt-level = 3
-lto = true
-strip = true
+lto = "fat"
 codegen-units = 1
+strip = true

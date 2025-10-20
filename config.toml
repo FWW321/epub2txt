@@ -1,0 +1,23 @@
+# The `config.toml` file is not required (default values will be used if absent).
+
+# 输入目录
+input_dir = "input"
+
+# 输出目录
+output_dir = "output"
+
+# 章节分隔符
+separator = ""
+
+[tags]
+title = ["title", "h1"]
+block = ["p", "div", "li", "ul", "section", "br"]
+inline = ["em", "span", "a", "strong", "em", "code", "sub", "sup"]
+
+[options]
+# 元数据
+metadata = true
+# 拆分章节
+split = true
+# 合并章节
+combine = false

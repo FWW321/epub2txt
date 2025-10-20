@@ -1,81 +1,80 @@
-use std::path::Path;
-use std::fs;
+use std::time::Instant;
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
+use rayon::prelude::*;
 
-use epub2txt::process::chapter::{write_total, write_chapters, Chapter};
-use epub2txt::process::opf::{get_opf_path, parse_opf};
-use epub2txt::process::{chapter, open_epub};
-
-static OUTPUT: &str = "output";
-static INPUT: &str = "input";
+use epub2txt::process;
+use epub2txt::get_config;
 
 fn main() -> Result<()> {
-    let base_dir = Path::new(OUTPUT);
-    
-    if !base_dir.exists() {
-        fs::create_dir(base_dir)?;
-    }
-    
-    let input_dir = Path::new(INPUT);
-
-    if !input_dir.exists() {
-        return Err(anyhow::anyhow!("Input directory does not exist"));
+    let start = Instant::now();
+    let input_dir = Path::new(&get_config().input_dir);
+    if !(input_dir.exists() && input_dir.is_dir()) {
+        anyhow::bail!("Input directory does not exist or is not a directory");
     }
 
-    for entry in fs::read_dir(input_dir)? {
-        let entry = entry?;
-        let path = entry.path();
+    let tasks = get_tasks(input_dir)?;
 
-        // 检查是否是 EPUB 文件
-        if path.is_file() {
-            if let Some(ext) = path.extension() {
-                if ext == "epub" {
-                    epub2txt(&base_dir, &path)?;
-                }
-            }
+    tasks
+        .into_par_iter()
+        .map(process_epub)
+        .collect::<Result<Vec<()>>>()?;
+
+    let duration = start.elapsed();
+
+    display_elapsed_time(duration);
+
+    Ok(())
+}
+
+fn process_epub(epub_path: PathBuf) -> anyhow::Result<()> {
+    let mut epub = process::Epub::from_file(epub_path)?;
+    epub.write()
+}
+
+fn get_tasks(input_dir: &Path) -> Result<Vec<PathBuf>> {
+    let epub_paths: Vec<PathBuf> = input_dir
+        .read_dir()?
+        .filter_map(|entry| {
+            let entry = entry.ok()?;
+            let path = entry.path();
+            (path.extension()? == "epub").then_some(path)
+        })
+        .collect();
+
+    Ok(epub_paths)
+}
+
+pub fn display_elapsed_time(duration: std::time::Duration) {
+    let total_ms = duration.as_millis();
+
+    if total_ms >= 60000 {
+        // 超过1分钟：显示分秒
+        let mins = total_ms / 60000;
+        let secs = (total_ms % 60000) / 1000;
+        let ms_remaining = total_ms % 1000;
+
+        if ms_remaining > 0 {
+            println!(
+                "✅ 处理完成！耗时: {}分{}秒{}毫秒",
+                mins, secs, ms_remaining
+            );
+        } else {
+            println!("✅ 处理完成！耗时: {}分{}秒", mins, secs);
         }
+    } else if total_ms >= 1000 {
+        // 1秒到1分钟：显示秒和毫秒
+        let secs = total_ms / 1000;
+        let ms_remaining = total_ms % 1000;
+
+        if ms_remaining > 0 {
+            println!("✅ 处理完成！耗时: {}秒{}毫秒", secs, ms_remaining);
+        } else {
+            println!("✅ 处理完成！耗时: {}秒", secs);
+        }
+    } else {
+        // 少于1秒：只显示毫秒
+        println!("✅ 处理完成！耗时: {}毫秒", total_ms);
     }
-
-    Ok(())
-}
-
-fn epub2txt(base_dir: &Path, epub_path: &Path) -> Result<()> {
-    let book_name = extract_book_name(&epub_path);
-    let output_dir = base_dir.join(&book_name);
-    let chapters_dir = output_dir.join("chapters");
-    fs::create_dir(&output_dir)?;
-    fs::create_dir(&chapters_dir)?;
-
-    let separator = prompt_input("请输入分隔符（回车跳过）:")?;
-
-    let mut archive = open_epub(epub_path)?;
-    let opf_path = get_opf_path(&mut archive)?;
-    let (metadata, chapter_hrefs) = parse_opf(&mut archive, &opf_path)?;
-    let chapter_files = chapter::href2path(&chapter_hrefs, &opf_path);
-    let chapters = Chapter::create_chapters(&mut archive, &chapter_files)?;
-    metadata.write(&output_dir)?;
-    write_chapters(&chapters, &chapters_dir)?;
-    write_total(metadata, &chapters, &output_dir, &separator)?;
-
-    Ok(())
-}
-
-fn prompt_input(prompt: &str) -> Result<String> {
-    use std::io::{self, Write};
-
-    print!("{}", prompt);
-    io::stdout().flush()?;
-
-    let mut input = String::new();
-    io::stdin().read_line(&mut input)?;
-    Ok(input.trim().to_string())
-}
-
-fn extract_book_name(epub_path: &Path) -> String {
-    epub_path
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("unknown_book")
-        .to_string()
 }
