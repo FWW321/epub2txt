@@ -35,11 +35,11 @@ impl Package {
 #[derive(Debug, Deserialize)]
 pub struct Metadata {
     pub title: Option<String>,
-    #[serde(rename = "creator")]
+    #[serde(rename = "creator", default)]
     pub creators: Vec<Creator>,
     pub language: Option<String>,
     pub description: Option<String>,
-    #[serde(rename = "subject")]
+    #[serde(rename = "subject", default)]
     pub subjects: Vec<String>,
 }
 
