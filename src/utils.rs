@@ -1,25 +1,27 @@
-use std::path::{Component, Path, PathBuf};
+pub fn normalize_zip_path(opf_path: &str, rel: String) -> String {
+    let mut result = String::with_capacity(opf_path.len() + rel.len());
 
-pub fn normalize_zip_path(opf_path: impl AsRef<Path>, relative: impl AsRef<Path>) -> PathBuf {
-    let opf_path = opf_path.as_ref();
-    let relative = relative.as_ref();
+    if let Some(pos) = opf_path.rfind('/') {
+        result.push_str(&opf_path[..pos]);
+    }
 
-    fn inner(opf_path: &Path, relative: &Path) -> PathBuf {
-        let base = opf_path.parent().unwrap_or(Path::new(""));
-
-        let mut result = base.to_path_buf();
-
-        for component in relative.components() {
-            match component {
-                Component::ParentDir => {
-                    result.pop();
+    // 处理相对路径部分
+    for comp in rel.split('/') {
+        match comp {
+            ".." => {
+                if let Some(pos) = result.rfind('/') {
+                    result.truncate(pos);
                 }
-                Component::CurDir => {}
-                _ => result.push(component),
+            },
+            "." | "" => {}, // 忽略这两种情况
+            _ => {
+                if !result.is_empty() {
+                    result.push('/');
+                }
+                result.push_str(comp);
             }
         }
-
-        result
     }
-    inner(opf_path, relative)
+
+    result
 }

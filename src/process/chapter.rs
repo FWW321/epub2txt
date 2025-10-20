@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::io::{BufReader, Write};
 
 use anyhow::Result;
@@ -84,13 +84,13 @@ impl Chapter {
 
 pub struct ChapterIter<'a> {
     archive: &'a mut ZipArchive<File>,
-    paths: std::slice::Iter<'a, PathBuf>,
+    paths: std::slice::Iter<'a, String>,
 }
 
 impl<'a> ChapterIter<'a> {
     pub fn new(
         archive: &'a mut ZipArchive<File>,
-        paths: &'a [PathBuf], // 改为引用
+        paths: &'a [String],
     ) -> Self {
         Self {
             archive,
@@ -104,10 +104,7 @@ impl<'a> Iterator for ChapterIter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.paths.next().map(|path| {
-            let path_str = path
-                .to_str()
-                .ok_or_else(|| anyhow::anyhow!("Invalid path encoding: {}", path.display()))?;
-            Chapter::extract_chapter(self.archive, path_str)
+            Chapter::extract_chapter(self.archive, path)
         })
     }
 }

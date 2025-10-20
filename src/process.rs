@@ -20,7 +20,7 @@ pub struct Epub {
     pub filename: String,
     pub archive: ZipArchive<File>,
     pub metadata: Metadata,
-    pub chapters: Vec<PathBuf>,
+    pub chapters: Vec<String>,
 }
 
 impl Epub {
@@ -48,7 +48,7 @@ impl Epub {
         let chapters = spine_hrefs
             .into_iter()
             .map(|href| normalize_zip_path(&opf_path, href))
-            .collect::<Vec<PathBuf>>();
+            .collect::<Vec<String>>();
 
         Ok(Self {
             metadata,
