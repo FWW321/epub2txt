@@ -1,11 +1,11 @@
-use std::time::Instant;
 use std::path::{Path, PathBuf};
+use std::time::Instant;
 
 use anyhow::Result;
 use rayon::prelude::*;
 
-use epub2txt::process;
 use epub2txt::get_config;
+use epub2txt::process;
 
 fn main() -> Result<()> {
     let start = Instant::now();

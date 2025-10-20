@@ -2,19 +2,19 @@ mod chapter;
 mod metadata;
 
 use std::fs::File;
-use std::io::Write;
 use std::io::BufReader;
+use std::io::Write;
 use std::path::PathBuf;
 
 use anyhow::Result;
-use zip::ZipArchive;
 use quick_xml::Reader;
 use quick_xml::events::Event;
+use zip::ZipArchive;
 
-use chapter::ChapterIter;
-use metadata::{Metadata, Package};
 use crate::config::get_config;
 use crate::utils::normalize_zip_path;
+use chapter::ChapterIter;
+use metadata::{Metadata, Package};
 
 pub struct Epub {
     pub filename: String,

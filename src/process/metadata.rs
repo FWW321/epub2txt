@@ -1,14 +1,14 @@
-use std::path::Path;
-use std::io::BufReader;
 use std::fs::{self, File};
+use std::io::BufReader;
+use std::path::Path;
 
-use quick_xml::de;
-use anyhow::Result;
 use ahash::AHashMap;
-use zip::read::ZipFile;
-use serde::Deserialize;
+use anyhow::Result;
 use phf::{Map, phf_map};
+use quick_xml::de;
+use serde::Deserialize;
 use toml_edit::{DocumentMut, Item, value};
+use zip::read::ZipFile;
 
 pub static ROLE_MAP: Map<&'static str, &'static str> = phf_map! {
     "aut" => "author",

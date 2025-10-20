@@ -12,8 +12,8 @@ pub fn normalize_zip_path(opf_path: &str, rel: String) -> String {
                 if let Some(pos) = result.rfind('/') {
                     result.truncate(pos);
                 }
-            },
-            "." | "" => {}, // 忽略这两种情况
+            }
+            "." | "" => {} // 忽略这两种情况
             _ => {
                 if !result.is_empty() {
                     result.push('/');
@@ -22,8 +22,6 @@ pub fn normalize_zip_path(opf_path: &str, rel: String) -> String {
             }
         }
     }
-
-    println!("Normalized path: {}", result);
 
     result
 }

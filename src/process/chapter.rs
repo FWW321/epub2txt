@@ -1,11 +1,11 @@
 use std::fs::File;
-use std::path::Path;
 use std::io::{BufReader, Write};
+use std::path::Path;
 
 use anyhow::Result;
-use zip::ZipArchive;
 use quick_xml::Reader;
 use quick_xml::events::Event;
+use zip::ZipArchive;
 
 use crate::config::get_config;
 
@@ -88,10 +88,7 @@ pub struct ChapterIter<'a> {
 }
 
 impl<'a> ChapterIter<'a> {
-    pub fn new(
-        archive: &'a mut ZipArchive<File>,
-        paths: &'a [String],
-    ) -> Self {
+    pub fn new(archive: &'a mut ZipArchive<File>, paths: &'a [String]) -> Self {
         Self {
             archive,
             paths: paths.iter(),
@@ -103,8 +100,8 @@ impl<'a> Iterator for ChapterIter<'a> {
     type Item = Result<Chapter>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.paths.next().map(|path| {
-            Chapter::extract_chapter(self.archive, path)
-        })
+        self.paths
+            .next()
+            .map(|path| Chapter::extract_chapter(self.archive, path))
     }
 }

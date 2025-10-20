@@ -1,5 +1,5 @@
 mod config;
-mod utils;
 pub mod process;
+mod utils;
 
 pub use config::get_config;

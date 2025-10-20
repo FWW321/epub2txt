@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
+use anyhow::{Context, Result};
+use lazy_static::lazy_static;
 use serde::Deserialize;
 use serde::de::Deserializer;
-use lazy_static::lazy_static;
-use anyhow::{Context, Result};
 
 lazy_static! {
     pub static ref CONFIG: Config = Config::load().expect("Failed to load configuration");
