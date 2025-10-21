@@ -65,9 +65,9 @@ impl Default for Options {
 
 #[derive(Debug)]
 pub struct Tags {
-    pub title: AHashSet<Vec<u8>>,
-    pub block: AHashSet<Vec<u8>>,
-    pub inline: AHashSet<Vec<u8>>,
+    pub title: AHashSet<&'static [u8]>,
+    pub block: AHashSet<&'static [u8]>,
+    pub inline: AHashSet<&'static [u8]>,
 }
 
 impl Default for Tags {
@@ -91,9 +91,18 @@ impl<'de> Deserialize<'de> for Tags {
 impl From<RawTags> for Tags {
     fn from(raw: RawTags) -> Self {
         Self {
-            title: raw.title.into_iter().map(|s| s.into_bytes()).collect(),
-            block: raw.block.into_iter().map(|s| s.into_bytes()).collect(),
-            inline: raw.inline.into_iter().map(|s| s.into_bytes()).collect(),
+            title: raw.title
+                .into_iter()
+                .map(|s|  Box::leak(s.into_boxed_str()).as_bytes())
+                .collect(),
+            block: raw.block
+                .into_iter()
+                .map(|s| Box::leak(s.into_boxed_str()).as_bytes())
+                .collect(),
+            inline: raw.inline
+                .into_iter()
+                .map(|s| Box::leak(s.into_boxed_str()).as_bytes())
+                .collect(),
         }
     }
 }
