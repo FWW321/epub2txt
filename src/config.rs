@@ -1,13 +1,13 @@
-use std::collections::HashSet;
+use std::sync::LazyLock;
 
+use ahash::AHashSet;
 use anyhow::{Context, Result};
-use lazy_static::lazy_static;
 use serde::Deserialize;
 use serde::de::Deserializer;
 
-lazy_static! {
-    pub static ref CONFIG: Config = Config::load().expect("Failed to load configuration");
-}
+static CONFIG: LazyLock<Config> = LazyLock::new(|| {
+    Config::load().expect("Failed to load configuration")
+});
 
 #[derive(Debug, Deserialize)]
 #[serde(default)]
@@ -65,9 +65,9 @@ impl Default for Options {
 
 #[derive(Debug)]
 pub struct Tags {
-    pub title: HashSet<Vec<u8>>,
-    pub block: HashSet<Vec<u8>>,
-    pub inline: HashSet<Vec<u8>>,
+    pub title: AHashSet<Vec<u8>>,
+    pub block: AHashSet<Vec<u8>>,
+    pub inline: AHashSet<Vec<u8>>,
 }
 
 impl Default for Tags {

@@ -20,4 +20,4 @@ metadata = true
 # 拆分章节
 split = true
 # 合并章节
-combine = false
+combine = true
