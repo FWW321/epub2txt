@@ -76,7 +76,7 @@ impl Epub {
 
     pub fn total_path(&self) -> Result<PathBuf> {
         let output_dir = self.output_dir()?;
-        let total_path = output_dir.join("total.txt");
+        let total_path = output_dir.join(&self.filename).with_extension("txt");
         if !total_path.exists() {
             File::create(&total_path)?;
         }
@@ -98,18 +98,18 @@ impl Epub {
         } else {
             None
         };
-        let total_path = if get_config().options.combine {
+        let mut total_file = if get_config().options.combine {
             let total_path = self.total_path()?;
+            let mut file = File::options().append(true).open(&total_path)?;
             if let Some(title) = &self.metadata.title {
-                let mut file = File::options().append(true).open(&total_path)?;
                 writeln!(file, "{}\n", title)?;
             }
-            Some(total_path)
+            Some(file)
         } else {
             None
         };
 
-        if chapters_dir.is_none() && total_path.is_none() {
+        if chapters_dir.is_none() && total_file.is_none() {
             return Ok(());
         }
 
@@ -121,11 +121,10 @@ impl Epub {
                 chapter.write(dir, index + 1)?;
             }
 
-            if let Some(total_path) = &total_path {
-                let mut file = File::options().append(true).open(total_path)?;
-                writeln!(file, "{}\n", chapter.title)?;
-                writeln!(file, "{}", chapter.content)?;
-                writeln!(file, "\n{}\n", &get_config().separator)?;
+            if let Some(total_file) = &mut total_file {
+                writeln!(total_file, "{}\n", chapter.title)?;
+                writeln!(total_file, "{}", chapter.content)?;
+                writeln!(total_file, "\n{}\n", &get_config().separator)?;
             }
         }
 
